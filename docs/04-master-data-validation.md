@@ -102,3 +102,70 @@ USER_CONSTRAINTS, and USER_CONS_COLUMNS in the MFG_OWNER schema.
 Constraint names currently include Oracle-generated SYS_C names.
 Naming-standard improvements, if required, should be implemented through
 a reviewed and repeatable schema migration.
+
+## 10. Regression Test Evidence
+
+The following version-controlled SQL test scripts were executed
+against the MFG_OWNER schema in Oracle AI Database 26ai Free.
+
+| Test Script | Assertions Passed | Result |
+|---|---:|---|
+| negative_integrity_tests.sql | 3 of 3 | PASSED |
+| expanded_negative_integrity_tests.sql | 16 of 16 | PASSED |
+| required_fields_and_item_fk_tests.sql | 10 of 10 | PASSED |
+| positive_integrity_tests.sql | 3 of 3 | PASSED |
+
+Negative-integrity coverage includes duplicate business codes,
+required-field enforcement, invalid item types, and foreign-key
+violations. Positive tests verify supported valid operations.
+
+All 29 negative-test assertions passed. All 3 positive-test
+assertions passed. Test changes were rolled back.
+
+### Baseline Preservation
+
+The observed master-data row counts after regression testing were:
+
+| Table | Row Count |
+|---|---:|
+| COMPANIES | 1 |
+| CUSTOMERS | 1 |
+| ITEMS | 2 |
+| SITES | 1 |
+| SUPPLIERS | 1 |
+| UOMS | 2 |
+| WAREHOUSES | 2 |
+| **Total** | **10** |
+
+These counts match the recorded baseline. This supports the conclusion
+that the test data changes were rolled back without altering the
+observed master-data row counts.
+
+Identity sequences may advance even when inserted test rows are rolled
+back; sequence values are not part of this row-count comparison.
+
+### Reproduction
+
+From the repository root, start SQL*Plus and connect as MFG_OWNER
+to the FREEPDB1 service. Use your existing verified connection string
+and enter the password when prompted.
+
+Execute all four scripts:
+
+```sql
+@tests/sql/negative_integrity_tests.sql
+@tests/sql/expanded_negative_integrity_tests.sql
+@tests/sql/required_fields_and_item_fk_tests.sql
+@tests/sql/positive_integrity_tests.sql
+```
+
+Confirm that each script completes successfully and reports its expected
+test count. Record the actual output from each run; do not assume that
+a previous successful run proves a later run passed.
+
+### Scope Limitations
+
+These results establish the behavior exercised by the listed tests.
+They do not establish that every business scenario is covered or that
+security, auditing, performance, reconciliation, deployment
+repeatability, backup, or recovery criteria have passed.
